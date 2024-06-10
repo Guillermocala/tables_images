@@ -34,3 +34,4 @@ npm run build
 npm run lint
 ```
 # table_w_images
+# tables_images
