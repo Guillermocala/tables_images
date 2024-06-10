@@ -10,6 +10,7 @@ import {
     AlignmentType,
     convertMillimetersToTwip,
     Document,
+    ImageRun,
     Packer,
     PageOrientation,
     Paragraph,
@@ -18,10 +19,8 @@ import {
     TableCell,
     TableRow,
     TextRun,
-    ImageRun,
     WidthType,
 } from "docx";
-
 import axios from 'axios';
 
 export default {
@@ -34,127 +33,85 @@ export default {
     },
 
     setup() {
-        const generate_docx = async (firstSection) => {
-            let childrens = [];
-
-            const urls = [
-                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
-                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
-                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
-                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
-                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
-            ];
-
-            let imageData;
-
+        const fetchImages = async (urls) => {
             try {
                 const imagePromises = urls.map(url => axios.get(url, {
                     responseType: 'blob'
                 }));
                 const imageBlobs = await Promise.all(imagePromises);
 
-
-                /* imageData = imageBlobs.map(blob => ({
-                    data: URL.createObjectURL(blob)
-                })); // Create data URLs */
-
-                console.log(imageBlobs);
-                imageData = imageBlobs;
+                return imageBlobs;
             } catch (error) {
                 console.error('An error occurred fetching images:', error);
             }
+        };
 
-            for (let index = 0; index < urls.length; index++) {
-                childrens.push(
-                    new TableRow({
+        const createTableRow = (imageData) => {
+            return new TableRow({
+                children: [
+                    new TableCell({
                         children: [
-                            new TableCell({
-                                /* width: {
-                                      size: 30,
-                                      type: WidthType.PERCENTAGE,
-                                }, */
-                                children: [
-                                    new Paragraph({
-                                        text: "Maq- Eq. Optometría: " + index,
-                                        style: "globalPar",
-                                    }),
-                                ],
+                            new Paragraph({
+                                text: "Maq- Eq. Optometría",
+                                style: "globalPar"
                             }),
-                            new TableCell({
-                                /* width: {
-                                      size: 70,
-                                      type: WidthType.PERCENTAGE,
-                                }, */
-                                children: [
-                                    new Paragraph({
-                                        text: "400000005: " + index,
-                                        style: "globalPar",
-                                    }),
-                                ],
+                        ],
+                    }),
+                    new TableCell({
+                        children: [
+                            new Paragraph({
+                                text: "400000005",
+                                style: "globalPar"
                             }),
-                            new TableCell({
-                                /* width: {
-                                      size: 70,
-                                      type: WidthType.PERCENTAGE,
-                                }, */
-                                children: [
-                                    new Paragraph({
-                                        text: ": " + index,
-                                        style: "globalPar",
-                                    }),
-                                ],
+                        ],
+                    }),
+                    new TableCell({
+                        children: [
+                            new Paragraph({
+                                text: "",
+                                style: "globalPar"
                             }),
-                            new TableCell({
-                                /* width: {
-                                      size: 70,
-                                      type: WidthType.PERCENTAGE,
-                                }, */
-                                children: [
-                                    new Paragraph({
-                                        text: "Mesa eléctrica: " + index,
-                                        style: "globalPar",
-                                    }),
-                                ],
+                        ],
+                    }),
+                    new TableCell({
+                        children: [
+                            new Paragraph({
+                                text: "Mesa eléctrica",
+                                style: "globalPar"
                             }),
-                            new TableCell({
-                                /* width: {
-                                      size: 70,
-                                      type: WidthType.PERCENTAGE,
-                                }, */
-                                children: [
-                                    new Paragraph({
-                                        text: "Faltante: " + index,
-                                        style: "globalPar",
-                                    }),
-                                ],
+                        ],
+                    }),
+                    new TableCell({
+                        children: [
+                            new Paragraph({
+                                text: "Faltante",
+                                style: "globalPar"
                             }),
-                            new TableCell({
-                                /* width: {
-                                      size: 70,
-                                      type: WidthType.PERCENTAGE,
-                                }, */
+                        ],
+                    }),
+                    new TableCell({
+                        children: [
+                            new Paragraph({
                                 children: [
-                                    new Paragraph({
-                                        children: [
-                                            new ImageRun({
-                                                data: imageData[index].data,
-                                                transformation: {
-                                                    width: 100,
-                                                    height: 100,
-                                                },
-                                            })
-                                        ],
+                                    new ImageRun({
+                                        data: imageData.data,
+                                        transformation: {
+                                            width: 100,
+                                            height: 100,
+                                        },
                                     }),
                                 ],
                             }),
                         ],
                     }),
-                );
-            }
+                ],
+            });
+        };
 
-            const dataSection = {
+        const createDataSection = (childrens) => {
+            return {
                 properties: {
-                    type: SectionType.CONTINUOUS,
+                    type: SectionType.CONTINUOUS
                 },
                 children: [
                     new Table({
@@ -168,76 +125,40 @@ export default {
                             new TableRow({
                                 children: [
                                     new TableCell({
-                                        /* width: {
-                                              size: 30,
-                                              type: WidthType.PERCENTAGE,
-                                        }, */
-                                        children: [
-                                            new Paragraph({
-                                                text: "Tipo de activo",
-                                                style: "globalPar",
-                                            }),
-                                        ],
+                                        children: [new Paragraph({
+                                            text: "Tipo de activo",
+                                            style: "globalPar"
+                                        })]
                                     }),
                                     new TableCell({
-                                        /* width: {
-                                              size: 70,
-                                              type: WidthType.PERCENTAGE,
-                                        }, */
-                                        children: [
-                                            new Paragraph({
-                                                text: "SAP",
-                                                style: "globalPar",
-                                            }),
-                                        ],
+                                        children: [new Paragraph({
+                                            text: "SAP",
+                                            style: "globalPar"
+                                        })]
                                     }),
                                     new TableCell({
-                                        /* width: {
-                                              size: 70,
-                                              type: WidthType.PERCENTAGE,
-                                        }, */
-                                        children: [
-                                            new Paragraph({
-                                                text: "Código",
-                                                style: "globalPar",
-                                            }),
-                                        ],
+                                        children: [new Paragraph({
+                                            text: "Código",
+                                            style: "globalPar"
+                                        })]
                                     }),
                                     new TableCell({
-                                        /* width: {
-                                              size: 70,
-                                              type: WidthType.PERCENTAGE,
-                                        }, */
-                                        children: [
-                                            new Paragraph({
-                                                text: "Descripción",
-                                                style: "globalPar",
-                                            }),
-                                        ],
+                                        children: [new Paragraph({
+                                            text: "Descripción",
+                                            style: "globalPar"
+                                        })]
                                     }),
                                     new TableCell({
-                                        /* width: {
-                                              size: 70,
-                                              type: WidthType.PERCENTAGE,
-                                        }, */
-                                        children: [
-                                            new Paragraph({
-                                                text: "Estado",
-                                                style: "globalPar",
-                                            }),
-                                        ],
+                                        children: [new Paragraph({
+                                            text: "Estado",
+                                            style: "globalPar"
+                                        })]
                                     }),
                                     new TableCell({
-                                        /* width: {
-                                              size: 70,
-                                              type: WidthType.PERCENTAGE,
-                                        }, */
-                                        children: [
-                                            new Paragraph({
-                                                text: "Foto",
-                                                style: "globalPar",
-                                            }),
-                                        ],
+                                        children: [new Paragraph({
+                                            text: "Foto",
+                                            style: "globalPar"
+                                        })]
                                     }),
                                 ],
                             }),
@@ -250,13 +171,14 @@ export default {
                     }),
                 ],
             };
+        };
 
+        const createDocument = async (firstSection, childrens) => {
             const doc = new Document({
-                sections: [firstSection, dataSection],
+                sections: [firstSection, createDataSection(childrens)],
                 size: {
                     orientation: PageOrientation.LANDSCAPE,
                 },
-
                 styles: {
                     paragraphStyles: [{
                         id: "globalPar",
@@ -265,10 +187,10 @@ export default {
                         next: "Normal",
                         run: {
                             size: 24,
-                            font: "Arial",
+                            font: "Arial"
                         },
                         paragraph: {
-                            alignment: AlignmentType.JUSTIFIED,
+                            alignment: AlignmentType.JUSTIFIED
                         },
                     }, ],
                     characterStyles: [{
@@ -278,7 +200,7 @@ export default {
                         next: "Normal",
                         run: {
                             size: 24,
-                            font: "Arial",
+                            font: "Arial"
                         },
                     }, ],
                 },
@@ -290,6 +212,136 @@ export default {
             } catch (error) {
                 console.log(error);
             }
+        };
+
+        const generateDocx = async (firstSection) => {
+            const urls = [
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+            ];
+
+            const imageData = await fetchImages(urls);
+            console.log("imageData", imageData);
+            const childrens = urls.map((url, index) => createTableRow(imageData[index]));
+            await createDocument(firstSection, childrens);
         };
 
         const generar = async () => {
@@ -313,11 +365,10 @@ export default {
                     }),
                 ],
             };
-            generate_docx(firstSection);
+            await generateDocx(firstSection);
         };
 
         return {
-            generate_docx,
             generar,
         };
     },
