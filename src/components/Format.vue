@@ -1,6 +1,5 @@
 <template>
 <button @click="generar()">Click Me!</button>
-<h1>Hola mundo</h1>
 </template>
 
 <script>
@@ -38,39 +37,34 @@ export default {
         const generate_docx = async (firstSection) => {
             let childrens = [];
 
-            async function fetchDataSequentially(urls) {
-                const results = [];
-                for (const url of urls) {
-                    try {
-                        const response = await axios.get(url);
-                        results.push(response.data);
-                    } catch (error) {
-                        console.error(`Error fetching data from ${url}:`, error);
-                    }
-                }
-                return results;
-            }
-            //comentario
-
-
             const urls = [
                 'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
                 'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
-                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg'
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
+                'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
             ];
 
-            let images;
-            fetchDataSequentially(urls)
-                .then(data => {
-                    // Process the data from each URL
-                    console.log(data);
-                    images = data;
-                })
-                .catch(error => {
-                    console.error('An error occurred:', error);
-                });
+            let imageData;
 
-            for (let index = 0; index < 3; index++) {
+            try {
+                const imagePromises = urls.map(url => axios.get(url, {
+                    responseType: 'blob'
+                }));
+                const imageBlobs = await Promise.all(imagePromises);
+
+
+                /* imageData = imageBlobs.map(blob => ({
+                    data: URL.createObjectURL(blob)
+                })); // Create data URLs */
+
+                console.log(imageBlobs);
+                imageData = imageBlobs;
+            } catch (error) {
+                console.error('An error occurred fetching images:', error);
+            }
+
+            for (let index = 0; index < urls.length; index++) {
                 childrens.push(
                     new TableRow({
                         children: [
@@ -81,7 +75,7 @@ export default {
                                 }, */
                                 children: [
                                     new Paragraph({
-                                        text: "Maq- Eq. Optometría",
+                                        text: "Maq- Eq. Optometría: " + index,
                                         style: "globalPar",
                                     }),
                                 ],
@@ -93,7 +87,7 @@ export default {
                                 }, */
                                 children: [
                                     new Paragraph({
-                                        text: "400000005",
+                                        text: "400000005: " + index,
                                         style: "globalPar",
                                     }),
                                 ],
@@ -105,7 +99,7 @@ export default {
                                 }, */
                                 children: [
                                     new Paragraph({
-                                        text: "",
+                                        text: ": " + index,
                                         style: "globalPar",
                                     }),
                                 ],
@@ -117,7 +111,7 @@ export default {
                                 }, */
                                 children: [
                                     new Paragraph({
-                                        text: "Mesa eléctrica",
+                                        text: "Mesa eléctrica: " + index,
                                         style: "globalPar",
                                     }),
                                 ],
@@ -129,7 +123,7 @@ export default {
                                 }, */
                                 children: [
                                     new Paragraph({
-                                        text: "Faltante",
+                                        text: "Faltante: " + index,
                                         style: "globalPar",
                                     }),
                                 ],
@@ -143,7 +137,7 @@ export default {
                                     new Paragraph({
                                         children: [
                                             new ImageRun({
-                                                data: "images",
+                                                data: imageData[index].data,
                                                 transformation: {
                                                     width: 100,
                                                     height: 100,
