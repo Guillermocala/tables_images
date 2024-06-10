@@ -50,6 +50,8 @@ export default {
                 }
                 return results;
             }
+            //comentario
+
 
             const urls = [
                 'https://raw.githubusercontent.com/dolanmiu/docx/ccd655ef8be3828f2c4b1feb3517a905f98409d9/demo/images/cat.jpg',
